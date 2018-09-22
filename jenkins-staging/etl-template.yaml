@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: etl-%JOB_BASE_NAME%-%BUILD_NUMBER%
+spec:
+  containers:
+    - name: etl-container
+      image: <DOCKER_REGISTRY>/generic.database.etl:%ETL_VERSION%
+      env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /opt/service-account/%SERVICE_ACCOUNT%
+      command: [ "/bin/sh", "-c", "target/generic-database-etl.jar -dataStartedDate \"%START_DATE%\" -dataEndedDate \"%END_DATE%\" -profile %PROFILE%"]
+      volumeMounts:
+          # name must match the volume name below
+          - name: secret-volume
+            mountPath: /opt/service-account
+            readOnly: true
+  volumes:
+    - name: secret-volume
+      secret:
+        secretName: %SECRET_KEY%
+  restartPolicy: Never
